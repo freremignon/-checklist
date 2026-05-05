@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="写真整理(年度)">
+<meta name="mobile-web-app-capable" content="yes">
+<title>写真整理チェックリスト（年度版）</title>
+<style>
+:root {
+  --cream: #faf8f5;
+  --white: #ffffff;
+  --orange: #d4896a;
+  --orange-light: #fdf0e8;
+  --orange-mid: #e8b49a;
+  --border: #e8e2d9;
+  --border2: #e0d9d0;
+  --text: #2d2419;
+  --text2: #8a7a6e;
+  --text3: #b8a99a;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--cream); font-family: 'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans-serif; color: var(--text); overflow: hidden; }
+
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; transition: opacity 0.25s, transform 0.25s; }
+.screen.hidden { opacity: 0; pointer-events: none; transform: translateY(16px); }
+
+/* SETUP */
+#setupScreen { background: var(--white); align-items: center; justify-content: center; padding: 2rem 1.5rem; padding-top: calc(var(--safe-top) + 2rem); padding-bottom: calc(var(--safe-bottom) + 2rem); }
+.setup-logo { font-size: 3rem; margin-bottom: 0.75rem; }
+.setup-brand { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text3); text-transform: uppercase; margin-bottom: 0.35rem; text-align: center; }
+.setup-title { font-size: 1.25rem; font-weight: 700; text-align: center; margin-bottom: 0.2rem; }
+.setup-badge { display: inline-block; background: var(--orange-light); color: var(--orange); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 99px; margin-bottom: 0.6rem; border: 1px solid var(--orange-mid); }
+.setup-sub { font-size: 0.8rem; color: var(--text2); text-align: center; margin-bottom: 2rem; }
+.setup-card { width: 100%; max-width: 360px; background: var(--cream); border-radius: 20px; padding: 1.25rem 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+.card-label { font-size: 0.72rem; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; margin-bottom: 0.9rem; }
+.card-note { font-size: 0.7rem; color: var(--text3); margin-top: 0.65rem; line-height: 1.6; }
+.select-row { display: flex; gap: 0.6rem; align-items: center; }
+.select-wrap { flex: 1; position: relative; }
+.select-wrap::after { content: "▾"; position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 0.72rem; pointer-events: none; }
+select { width: 100%; padding: 0.7rem 1.8rem 0.7rem 0.85rem; border: 1.5px solid var(--border2); border-radius: 12px; background: var(--white); font-size: 0.95rem; font-family: inherit; color: var(--text); appearance: none; -webkit-appearance: none; outline: none; }
+select:focus { border-color: var(--orange); }
+.select-sep { color: var(--text3); font-size: 0.85rem; white-space: nowrap; }
+.btn-primary { width: 100%; max-width: 360px; padding: 1rem; background: linear-gradient(135deg,#d4896a,#c07050); color: white; font-size: 1rem; font-weight: 700; font-family: inherit; border: none; border-radius: 16px; cursor: pointer; letter-spacing: 0.03em; box-shadow: 0 4px 20px rgba(212,137,106,0.35); transition: transform 0.1s, box-shadow 0.1s; }
+.btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(212,137,106,0.2); }
+
+/* MAIN */
+#mainScreen { background: var(--cream); }
+.app-header { background: var(--white); border-bottom: 1px solid var(--border); padding: calc(var(--safe-top) + 0.85rem) 1.25rem 0.85rem; flex-shrink: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+.header-brand { font-size: 0.6rem; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; font-weight: 600; }
+.header-title-wrap { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.1rem; }
+.header-title { font-size: 1.05rem; font-weight: 700; }
+.header-badge { background: var(--orange-light); color: var(--orange); font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; border: 1px solid var(--orange-mid); white-space: nowrap; }
+.btn-settings { background: var(--cream); border: 1.5px solid var(--border2); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: background 0.15s; }
+.btn-settings:active { background: var(--border); }
+.progress-row { display: flex; align-items: center; gap: 0.7rem; }
+.progress-bar { flex: 1; background: #ede7de; border-radius: 99px; height: 7px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg,var(--orange),var(--orange-mid)); border-radius: 99px; transition: width 0.5s cubic-bezier(.4,0,.2,1); width: 0%; }
+.progress-count { font-size: 0.8rem; font-weight: 700; color: var(--orange); min-width: 3.2rem; text-align: right; }
+.progress-pct { font-size: 0.66rem; color: var(--text3); margin-top: 0.28rem; }
+
+.scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.25rem 1rem; padding-bottom: calc(var(--safe-bottom) + 2rem); }
+
+/* 年度ブロック */
+.nendo-block { margin-bottom: 1.4rem; }
+.nendo-header { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.6rem; padding-bottom: 0.42rem; border-bottom: 2px solid var(--border); transition: border-color 0.3s; }
+.nendo-header.done { border-color: var(--orange); }
+.nendo-label { font-size: 0.92rem; font-weight: 700; transition: color 0.3s; }
+.nendo-header.done .nendo-label { color: var(--orange); }
+.nendo-sub { font-size: 0.65rem; color: var(--text3); }
+.nendo-count { font-size: 0.68rem; color: var(--text3); transition: color 0.3s; margin-left: auto; }
+.nendo-header.done .nendo-count { color: var(--orange); font-weight: 700; }
+
+/* 月グリッド - 年度順（4月〜3月）= 12マス */
+.month-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.42rem; }
+.month-btn { border: 1.5px solid var(--border2); border-radius: 11px; padding: 0.55rem 0.2rem; background: var(--white); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.18rem; transition: border-color 0.15s, background 0.15s, transform 0.1s; outline: none; font-family: inherit; }
+.month-btn:active { transform: scale(0.92); }
+.month-btn.checked { border-color: var(--orange); background: var(--orange-light); }
+.month-btn.dimmed { opacity: 0.35; }
+.month-icon { font-size: 1rem; line-height: 1; }
+.month-name { font-size: 0.73rem; color: var(--text2); transition: color 0.15s; }
+.month-btn.checked .month-name { color: var(--orange); font-weight: 700; }
+.month-year-hint { font-size: 0.58rem; color: var(--text3); line-height: 1; }
+
+.complete-msg { display: none; text-align: center; padding: 1.6rem; background: linear-gradient(135deg,#fdf0e8,#fff8f4); border-radius: 18px; border: 1px solid #e8c4a8; margin-top: 0.5rem; }
+.complete-msg.show { display: block; }
+.complete-emoji { font-size: 2rem; margin-bottom: 0.4rem; }
+.complete-title { font-weight: 700; font-size: 1rem; color: var(--orange); }
+.complete-sub { font-size: 0.73rem; color: var(--text3); margin-top: 0.2rem; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: flex-end; justify-content: center; transition: opacity 0.25s; }
+.modal-overlay.hidden { opacity: 0; pointer-events: none; }
+.modal-sheet { background: var(--white); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 1.25rem 1.5rem calc(var(--safe-bottom) + 1.5rem); transition: transform 0.3s cubic-bezier(.4,0,.2,1); }
+.modal-overlay.hidden .modal-sheet { transform: translateY(100%); }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 1.1rem; }
+.modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.1rem; }
+.modal-section-label { font-size: 0.68rem; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.55rem; }
+.modal-tip { font-size: 0.73rem; color: var(--text3); background: var(--cream); border-radius: 12px; padding: 0.7rem 0.9rem; margin-bottom: 1.1rem; line-height: 1.65; }
+.btn-apply { width: 100%; padding: 0.9rem; background: linear-gradient(135deg,#d4896a,#c07050); color: white; font-size: 0.95rem; font-weight: 700; font-family: inherit; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 16px rgba(212,137,106,0.3); transition: transform 0.1s; }
+.btn-apply:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="screen" id="setupScreen">
+  <div class="setup-logo">📷</div>
+  <p class="setup-brand">とびらPhoto</p>
+  <h1 class="setup-title">写真整理チェックリスト</h1>
+  <div style="text-align:center;margin-bottom:0.6rem"><span class="setup-badge">📅 年度版（4月始まり）</span></div>
+  <p class="setup-sub">いつから整理を始めますか？</p>
+  <div class="setup-card">
+    <p class="card-label">📅 スタート年度</p>
+    <div class="select-row">
+      <div class="select-wrap"><select id="setupYear"></select></div>
+      <span class="select-sep">年</span>
+      <div class="select-wrap"><select id="setupMonth"></select></div>
+      <span class="select-sep">月〜</span>
+    </div>
+    <p class="card-note">例）2015年4月スタート → 2015年度〜2026年度（〜2027年3月）</p>
+  </div>
+  <button class="btn-primary" onclick="startApp()">はじめる →</button>
+</div>
+
+<!-- MAIN -->
+<div class="screen hidden" id="mainScreen">
+  <div class="app-header">
+    <div class="header-top">
+      <div>
+        <div class="header-brand">とびらPhoto</div>
+        <div class="header-title-wrap">
+          <div class="header-title">📷 写真整理チェックリスト</div>
+          <span class="header-badge">年度版</span>
+        </div>
+      </div>
+      <button class="btn-settings" onclick="openSettings()">⚙️</button>
+    </div>
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-count" id="progressCount">0 / 0</div>
+    </div>
+    <p class="progress-pct" id="progressPct">0% 完了</p>
+  </div>
+  <div class="scroll-area" id="scrollArea"></div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay hidden" id="settingsModal" onclick="closeSettingsIfBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ 設定</div>
+    <p class="modal-section-label">スタート年月を変更</p>
+    <div class="select-row" style="margin-bottom:0.7rem">
+      <div class="select-wrap"><select id="settingsYear"></select></div>
+      <span class="select-sep">年</span>
+      <div class="select-wrap"><select id="settingsMonth"></select></div>
+      <span class="select-sep">月〜</span>
+    </div>
+    <div class="modal-tip">⚠️ 変更するとリストが再構築されます。チェック済みのデータはそのまま残ります。</div>
+    <button class="btn-apply" onclick="applySettings()">変更を保存</button>
+  </div>
+</div>
+
+<script>
+// 月の表示順（年度：4月〜3月）
+const NENDO_MONTHS = [3,4,5,6,7,8,9,10,11,0,1,2]; // 0-indexed: 3=4月, 0=1月...
+const MONTH_JP = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+// 年度の終わり: 2026年度（2027年3月）固定
+const END_NENDO = 2026;
+
+const SK = "tobira_nendo_cl_v1";
+let state = {};
+function load() { try { state = JSON.parse(localStorage.getItem(SK)||"{}"); } catch { state={}; } }
+function save() { try { localStorage.setItem(SK, JSON.stringify(state)); } catch {} }
+function getConfig() { return state.config || { startYear:2015, startMonth:4 }; }
+
+function buildSelects(yearId, monthId, cfg) {
+  const ys = document.getElementById(yearId);
+  const ms = document.getElementById(monthId);
+  ys.innerHTML=""; ms.innerHTML="";
+  for(let y=2010;y<=2026;y++){ const o=document.createElement("option"); o.value=y; o.textContent=y+"年"; if(y===cfg.startYear)o.selected=true; ys.appendChild(o); }
+  for(let m=1;m<=12;m++){ const o=document.createElement("option"); o.value=m; o.textContent=m+"月"; if(m===cfg.startMonth)o.selected=true; ms.appendChild(o); }
+}
+
+// 年度リスト生成
+// 年度N = N年4月〜N+1年3月
+// startYear/startMonthから2026年度末(2027年3月)まで
+function getNendoList(startYear, startMonth) {
+  // startMonthが何年度に属するか
+  const startNendo = startMonth >= 4 ? startYear : startYear - 1;
+  const nendos = [];
+  for(let n = startNendo; n <= END_NENDO; n++) {
+    const months = [];
+    for(let mi of NENDO_MONTHS) {
+      // mi: 0-indexed month (3=April, 0=January...)
+      const actualYear = mi >= 3 ? n : n+1; // 4〜12月はn年、1〜3月はn+1年
+      const actualMonth0 = mi; // 0-indexed
+      // スタートより前はスキップ
+      const thisDate = actualYear*100 + actualMonth0+1;
+      const startDate = startYear*100 + startMonth;
+      if(thisDate < startDate) continue;
+      months.push({ year: actualYear, month: actualMonth0 });
+    }
+    if(months.length > 0) nendos.push({ nendo: n, months });
+  }
+  return nendos;
+}
+
+function buildList() {
+  const {startYear, startMonth} = getConfig();
+  const nendos = getNendoList(startYear, startMonth);
+  const area = document.getElementById("scrollArea");
+  area.innerHTML = "";
+  const checks = state.checks || {};
+  let total = 0;
+
+  nendos.forEach(({nendo, months}) => {
+    total += months.length;
+    const done = months.filter(({year,month})=>checks[year+"-"+month]).length;
+    const isDone = done === months.length;
+
+    const block = document.createElement("div");
+    block.className = "nendo-block";
+
+    const hdr = document.createElement("div");
+    hdr.className = "nendo-header"+(isDone?" done":"");
+    hdr.id = "nh-"+nendo;
+    hdr.innerHTML = `
+      <span class="nendo-label">${nendo}年度</span>
+      <span class="nendo-sub">${nendo}年4月〜${nendo+1}年3月</span>
+      <span class="nendo-count" id="nc-${nendo}">${isDone?"✓ 完了":done+" / "+months.length}</span>
+    `;
+    block.appendChild(hdr);
+
+    const grid = document.createElement("div");
+    grid.className = "month-grid";
+
+    // 全12マス（年度順）を描画。スタート前はdimmed
+    NENDO_MONTHS.forEach(mi => {
+      const actualYear = mi >= 3 ? nendo : nendo+1;
+      const thisDate = actualYear*100 + mi+1;
+      const startDate = startYear*100 + startMonth;
+      const isBeforeStart = thisDate < startDate;
+
+      const key = actualYear+"-"+mi;
+      const isChecked = !isBeforeStart && !!checks[key];
+
+      const btn = document.createElement("button");
+      btn.className = "month-btn"+(isChecked?" checked":"")+(isBeforeStart?" dimmed":"");
+      btn.id = "btn-"+key+"-"+nendo;
+      // 年をサブ表示（1〜3月はn+1年なので）
+      const yearHint = mi < 3 ? `<span class="month-year-hint">${actualYear}年</span>` : "";
+      btn.innerHTML = `<span class="month-icon">${isChecked?"✅":"⬜"}</span><span class="month-name">${MONTH_JP[mi]}</span>${yearHint}`;
+      if(!isBeforeStart) btn.addEventListener("click", ()=>toggle(key, nendo, months));
+      grid.appendChild(btn);
+    });
+
+    block.appendChild(grid);
+    area.appendChild(block);
+  });
+
+  // 完了メッセージ
+  const msg = document.createElement("div");
+  msg.className = "complete-msg";
+  msg.id = "completeMsg";
+  const startNendo = startMonth >= 4 ? startYear : startYear-1;
+  msg.innerHTML = `<div class="complete-emoji">🎉</div><p class="complete-title">全部完了！おめでとうございます✨</p><p class="complete-sub">${startNendo}年度〜2026年度の写真整理が終わりました</p>`;
+  area.appendChild(msg);
+
+  updateProgress(total);
+}
+
+function toggle(key, nendo, months) {
+  if(!state.checks) state.checks={};
+  state.checks[key] = !state.checks[key];
+  if(!state.checks[key]) delete state.checks[key];
+  save();
+
+  const ic = !!state.checks[key];
+  // 同じkeyのボタンは年度ごとにIDが違うので全部更新
+  document.querySelectorAll(`[id^="btn-${key}-"]`).forEach(btn=>{
+    btn.classList.toggle("checked",ic);
+    btn.querySelector(".month-icon").textContent = ic?"✅":"⬜";
+  });
+
+  // 年度カウント更新
+  const done = months.filter(({year,month})=>state.checks[year+"-"+month]).length;
+  const hdr = document.getElementById("nh-"+nendo);
+  const cnt = document.getElementById("nc-"+nendo);
+  if(hdr) hdr.classList.toggle("done", done===months.length);
+  if(cnt) cnt.textContent = done===months.length?"✓ 完了":done+" / "+months.length;
+
+  const total = document.querySelectorAll(".month-btn:not(.dimmed)").length;
+  updateProgress(total);
+}
+
+function updateProgress(total) {
+  const done = Object.values(state.checks||{}).filter(Boolean).length;
+  const pct = total>0?Math.round(done/total*100):0;
+  document.getElementById("progressFill").style.width=pct+"%";
+  document.getElementById("progressCount").textContent=done+" / "+total;
+  document.getElementById("progressPct").textContent=pct+"% 完了";
+  const msg=document.getElementById("completeMsg");
+  if(msg) msg.classList.toggle("show",done===total&&total>0);
+}
+
+function startApp() {
+  const y=parseInt(document.getElementById("setupYear").value);
+  const m=parseInt(document.getElementById("setupMonth").value);
+  state.config={startYear:y,startMonth:m};
+  save();
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("mainScreen").classList.remove("hidden");
+  buildList();
+}
+
+function openSettings() {
+  buildSelects("settingsYear","settingsMonth",getConfig());
+  document.getElementById("settingsModal").classList.remove("hidden");
+}
+function closeSettings() { document.getElementById("settingsModal").classList.add("hidden"); }
+function closeSettingsIfBg(e) { if(e.target===document.getElementById("settingsModal"))closeSettings(); }
+function applySettings() {
+  const y=parseInt(document.getElementById("settingsYear").value);
+  const m=parseInt(document.getElementById("settingsMonth").value);
+  state.config={startYear:y,startMonth:m};
+  save(); closeSettings(); buildList();
+}
+
+// 初期化
+load();
+if(state.config) {
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("mainScreen").classList.remove("hidden");
+  buildList();
+} else {
+  buildSelects("setupYear","setupMonth",{startYear:2015,startMonth:4});
+}
+</script>
+</body>
+</html>
